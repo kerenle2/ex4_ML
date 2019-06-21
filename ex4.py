@@ -1,6 +1,11 @@
 from gcommand_loader import GCommandLoader
 import torch
 
+# define all hyper-parameters here:
+learning_rate = 0.005
+num_epochs = 50
+
+
 class CNN(torch.nn.Module):
     def __init__(self,image_size):
         super(CNN, self).__init__()
@@ -15,10 +20,7 @@ class CNN(torch.nn.Module):
         x = torch.F.relu(self.fc2(x))
         return torch.F.log_softmax(x)
 
-# define all hyper-parameters here:
-learning_rate = 0.005
-num_epochs = 50
-weight_decay = 0
+
 
 def load_data():
     train_set = GCommandLoader('./data/train')

@@ -4,14 +4,14 @@ import torch.nn.functional as F
 # define all hyper-parameters here:
 learning_rate = 0.005
 num_epochs = 3
-
+input_channels = 1
 
 
 class CNN(torch.nn.Module):
-    # input channel = 1
+
     def __init__(self):
         super(CNN, self).__init__()
-        self.conv1 = torch.nn.Conv2d(1, 18, kernel_size=3, stride=1, padding=1)
+        self.conv1 = torch.nn.Conv2d(input_channels, 18, kernel_size=3, stride=1, padding=1)
         self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
         self.conv2 = torch.nn.Conv2d(18, 36, kernel_size=3, stride=1, padding=1)
 
@@ -52,10 +52,10 @@ def test(x):
     test_loss = 0
     correct = 0
     for example, label in x:
-        output = model(x)
-        test_loss += torch.F.nll_loss(output, torch.target, size_average=False).data[0]  # sum up batch loss
+        output = model(example)
+        test_loss += torch.F.nll_loss(output, label, size_average=False).data[0]  # sum up batch loss
         pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
-        correct += pred.eq(torch.target.data.view_as(pred)).cpu().sum()
+        correct += pred.eq(label.data.view_as(pred)).cpu().sum()
     test_loss /= len(x.dataset)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(x.dataset),
@@ -64,7 +64,7 @@ def test(x):
 
 def train_one_epoch(x, model, optimizer):
     for batch_idx, (example, label) in enumerate(x):
-        # optimizer.zero_grad()
+        optimizer.zero_grad()
         output = model(example)
         loss = F.nll_loss(output, label)
         loss.backward()

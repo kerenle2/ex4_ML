@@ -5,6 +5,7 @@ import torch.nn.functional as F
 learning_rate = 0.005
 num_epochs = 3
 input_channels = 1
+batch_size = 100
 
 
 class CNN(torch.nn.Module):
@@ -39,10 +40,10 @@ def load_data():
     # test_set = GCommandLoader('./data/test')
 
     train_loader = torch.utils.data.DataLoader(
-        train_set, batch_size=100, shuffle=True,
+        train_set, batch_size=batch_size, shuffle=True,
         num_workers=0, pin_memory=True, sampler=None)
     valid_loader = torch.utils.data.DataLoader(
-        valid_set, batch_size=100, shuffle=True,
+        valid_set, batch_size=batch_size, shuffle=True,
         num_workers=0, pin_memory=True, sampler=None)
     return train_loader, valid_loader
 
@@ -53,7 +54,7 @@ def test(x):
     correct = 0
     for example, label in x:
         output = model(example)
-        test_loss += torch.F.nll_loss(output, label, size_average=False).data[0]  # sum up batch loss
+        test_loss += F.nll_loss(output, label, size_average=False).item()  # sum up batch loss
         pred = output.data.max(1, keepdim=True)[1]  # get the index of the max log-probability
         correct += pred.eq(label.data.view_as(pred)).cpu().sum()
     test_loss /= len(x.dataset)
@@ -80,6 +81,6 @@ if __name__ == "__main__":
     # optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     model.train()
-    for epoch in range(num_epochs):
+    for epoch in range(1, num_epochs + 1):
         train_one_epoch(train_loader, model, optimizer)
         test(train_loader)

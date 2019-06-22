@@ -1,38 +1,46 @@
 from gcommand_loader import GCommandLoader
 import torch
-
+import torch.nn.functional as F
 # define all hyper-parameters here:
 learning_rate = 0.005
 num_epochs = 50
 
 
-class CNN(torch.nn.Module):
-    def __init__(self,image_size):
-        super(CNN, self).__init__()
-        self.image_size = image_size
-        self.fc0 = torch.nn.Linear(image_size, 1000)
-        self.fc1 = torch.nn.Linear(1000, 50)
-        self.fc2 = torch.nn.Linear(50, 10)
-    def forward(self, x):
-        x = x.view(-1, self.image_size)
-        x = torch.F.relu(self.fc0(x))
-        x = torch.F.relu(self.fc1(x))
-        x = torch.F.relu(self.fc2(x))
-        return torch.F.log_softmax(x)
 
+class CNN(torch.nn.Module):
+    # input channel = 1
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv1 = torch.nn.Conv2d(1, 18, kernel_size=3, stride=1, padding=1)
+        self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.fc1 = torch.nn.Linear(18 * 16 * 16, 64)
+        self.fc2 = torch.nn.Linear(64, 10)
+
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = self.pool(x)
+        # x = x.view(-1, 18 * 16 * 16)
+        # x = F.relu(self.fc1(x))
+        # x = self.fc2(x)
+
+        return x
 
 
 def load_data():
     train_set = GCommandLoader('./data/train')
-    valid_set = GCommandLoader('./data/train')
+    valid_set = GCommandLoader('./data/valid')
+    # test_set = GCommandLoader('./data/test')
 
     train_loader = torch.utils.data.DataLoader(
-        train_set, batch_size=100, shuffle=None,
-        num_workers=20, pin_memory=True, sampler=None)
+        train_set, batch_size=100, shuffle=True,
+        num_workers=0, pin_memory=True, sampler=None)
     valid_loader = torch.utils.data.DataLoader(
-        valid_set, batch_size=100, shuffle=None,
-        num_workers=20, pin_memory=True, sampler=None)
+        valid_set, batch_size=100, shuffle=True,
+        num_workers=0, pin_memory=True, sampler=None)
     return train_loader, valid_loader
+
+
 def test(x):
     model.eval()
     test_loss = 0
@@ -48,12 +56,11 @@ def test(x):
         100. * correct / len(x.dataset)))
 
 
-def train_one_epoch(x,model,optimizer):
-    model.train()
-    for batch_idx, (example, label) in enumerate(x):
-        optimizer.zero_grad()
+def train_one_epoch(x, model, optimizer):
+    for batch_idx, (example, label) in enumerate(x): #not working!!!!!!!!!!!!!1
+        # optimizer.zero_grad()
         output = model(example)
-        loss = torch.F.nll_loss(output, label)
+        loss = F.nll_loss(output, label)
         loss.backward()
         optimizer.step()
 
@@ -61,10 +68,13 @@ def train_one_epoch(x,model,optimizer):
 
 
 if __name__ == "__main__":
-    train_set, valid_set = load_data()
+    train_loader, valid_loader = load_data()
     # train the model:
-    model = CNN()
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
+    model = CNN()
+    loss = torch.nn.CrossEntropyLoss()
+    # optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    model.train()
     for epoch in range(num_epochs):
-        epoch_loss = train_one_epoch(train_set, model, optimizer)
+        epoch_loss = train_one_epoch(train_loader, model, optimizer)

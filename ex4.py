@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 # define all hyper-parameters here:
 learning_rate = 0.005
-num_epochs = 50
+num_epochs = 3
 
 
 
@@ -13,17 +13,23 @@ class CNN(torch.nn.Module):
         super(CNN, self).__init__()
         self.conv1 = torch.nn.Conv2d(1, 18, kernel_size=3, stride=1, padding=1)
         self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = torch.nn.Linear(18 * 16 * 16, 64)
-        self.fc2 = torch.nn.Linear(64, 10)
+        self.conv2 = torch.nn.Conv2d(18, 36, kernel_size=3, stride=1, padding=1)
+
+        self.fc1 = torch.nn.Linear(36000, 100)
+        self.fc2 = torch.nn.Linear(100, 30)
 
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
         x = self.pool(x)
-        # x = x.view(-1, 18 * 16 * 16)
-        # x = F.relu(self.fc1(x))
-        # x = self.fc2(x)
-
+        ###
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
+        x = x.view(-1, 36 * 40 * 25)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        x = F.log_softmax(x, dim=1)
         return x
 
 
@@ -57,7 +63,7 @@ def test(x):
 
 
 def train_one_epoch(x, model, optimizer):
-    for batch_idx, (example, label) in enumerate(x): #not working!!!!!!!!!!!!!1
+    for batch_idx, (example, label) in enumerate(x):
         # optimizer.zero_grad()
         output = model(example)
         loss = F.nll_loss(output, label)

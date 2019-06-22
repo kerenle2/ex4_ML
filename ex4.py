@@ -70,8 +70,6 @@ def train_one_epoch(x, model, optimizer):
         loss.backward()
         optimizer.step()
 
-    return epoch_loss
-
 
 if __name__ == "__main__":
     train_loader, valid_loader = load_data()
@@ -83,4 +81,5 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     model.train()
     for epoch in range(num_epochs):
-        epoch_loss = train_one_epoch(train_loader, model, optimizer)
+        train_one_epoch(train_loader, model, optimizer)
+        test(train_loader)

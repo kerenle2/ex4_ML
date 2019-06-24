@@ -38,7 +38,7 @@ def make_dataset(dir, class_to_idx):
                     item = (path, class_to_idx[target])
                     spects.append(item)
                     # #deleteeeeeeeeeeeeee:
-                    # if len(spects) == 1000:
+                    # if len(spects) == 3000:
                     #     return spects
     return spects
 
